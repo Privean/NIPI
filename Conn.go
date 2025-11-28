@@ -104,7 +104,8 @@ func(c *Conn) Water () (E error) {
 	} ( )
 	xb10 := map[string]any { }
 	xb10["Service"] = ""
-	for  xc05 := 1; xc05 <= c.pool.Len(); xc05++ {
+	xb15 := c.pool.Len()
+	for  xc05 := 1; xc05 <= xb15; xc05++ {
 		xc10 := c.pool.Front ()
 		c.pool.Remove (xc10)
 		xc15 := xc10.Value.(net.Conn)

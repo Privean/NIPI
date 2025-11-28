@@ -7,16 +7,18 @@ import  "testing"
 
 func    TestMain (T *testing.T) {
 	/***1***/
-//	xb05  , xb10 := Conn_Create ("127.0.0.1", "8558", false, "", 10)
-	xb05  , xb10 := Conn_Create ("am.ams.lytup.qbqevell.ng", "10021", true, "", 2)
+	xb05  , xb10 := Conn_Create ("127.0.0.1", "8558", false, "", 10)
+//	xb05  , xb10 := Conn_Create ("am.ams.lytup.qbqevell.ng", "10021", true, "", 5)
 	if xb05 != nil {
 		xc05 := fmt.Sprintf (`Conn creation failed [%s]`, xb05.Error ())
 		fmt.Println (xc05)
 		return
 	}
 	/***2***/
+	xb10.Water ()
+	/***3***/
 	xb12 := "c6baff6c-a401-4ac7-aa21-a2cdf1d3aa73"
-	xb15 := 1000
+	xb15 := 20
 	xb20 := &sync.WaitGroup {}
 	xb20.Add (xb15)
 	for xc05 := 1; xc05 <= xb15; xc05 ++ {
@@ -32,7 +34,7 @@ func    TestMain (T *testing.T) {
 		} ()
 	}
 	xb20.Wait ()
-	/***3***/
+	/***4***/
 	/*
 	xb25 , xb30 := SR20 (xb10, xb12)
 	if xb25 != 200 {
@@ -41,7 +43,7 @@ func    TestMain (T *testing.T) {
 		return
 	}
 	*/
-	/***4***/
+	/***5***/
 	/*
 	xb35 , xb40 := SR25 (xb10, xb12, "UGFzcyEh")
 	if xb35 != 200 {
@@ -50,7 +52,7 @@ func    TestMain (T *testing.T) {
 		return
 	}
 	*/
-	/***5***/
+	/***6***/
 	/*
 	xb35 , xb40 , xb45 , xb50 , xb55 :=SR30 (xb10, xb12, "UGFzcyEh", 30)
 	if xb35 != 200 {
@@ -60,7 +62,7 @@ func    TestMain (T *testing.T) {
 	}
 	fmt.Println ( xb45 , xb50 , xb55 )
 	*/
-	/***6***/
+	/***7***/
 	/*
 	xb75 , xb80 :=SR40 ( xb10 , xb12 , xb50, xb55)
 	if xb75 != 200 {
@@ -69,7 +71,7 @@ func    TestMain (T *testing.T) {
 		return
 	}
 	*/
-	/***6***/
+	/***8***/
 	/*
 	xb60 , xb65 , xb70 :=SR35 ( xb10 , xb12, xb50, xb55)
 	if xb60 != 200 {
