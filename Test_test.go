@@ -7,16 +7,14 @@ import  "testing"
 
 func    TestMain (T *testing.T) {
 	/***1***/
-	xb05  , xb10 := Conn_Create ("127.0.0.1", "8558", false, "", 10)
-//	xb05  , xb10 := Conn_Create ("am.ams.lytup.qbqevell.ng", "10021", true, "", 5)
+//	xb05  , xb10 := Conn_Create ("127.0.0.1", "8558", false, "", 1)
+	xb05  , xb10 := Conn_Create ("am.ams.lytup.qbqevell.ng", "10021", true, "", 10)
 	if xb05 != nil {
 		xc05 := fmt.Sprintf (`Conn creation failed [%s]`, xb05.Error ())
 		fmt.Println (xc05)
 		return
 	}
 	/***2***/
-	xb10.Water ()
-	/***3***/
 	xb12 := "c6baff6c-a401-4ac7-aa21-a2cdf1d3aa73"
 	xb15 := 20
 	xb20 := &sync.WaitGroup {}

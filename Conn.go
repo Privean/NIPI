@@ -25,6 +25,10 @@ func    Conn_Create (
 		pool: list.New (),
 		mtxx: &sync.Mutex {},
 		atKy: AuthKey,
+		cmps_addr: RemoteAddr,
+		cmps_port: RemotePort,
+		cmps_scrt: Security,
+		cmps_auth: AuthKey,
 	}
 	for xc05 := 1; xc05 <= ChannelSize; xc05++ {
 		xc15 , xc20 := net.DialTimeout (
@@ -51,6 +55,10 @@ type    Conn struct {
 	mtxx *sync.Mutex
 	atKy string
 	tknn chan bool
+	cmps_addr string
+	cmps_port string
+	cmps_scrt bool
+	cmps_auth string
 }
 func(c *Conn) Write (MssgType string, MssgSeed map[string]any) (
 	C int, N string, Y map[string]any,
@@ -81,11 +89,30 @@ func(c *Conn) Write (MssgType string, MssgSeed map[string]any) (
 		c.tknn <- true
 	} ( )
 	/***3***/
-	xb20  , xb25 := Forwarder (conn, xb10)
+	xb20  , xb25 :=Forwarder (conn, xb10)
 	if xb20 != nil {
-		C= 500
-		N= fmt.Sprintf (`Request forwarding failed [%s]`, xb20.Error ())
-		return 
+		xc15  , xc20 := net.DialTimeout (
+			"tcp", c.cmps_addr+":"+c.cmps_port, time.Minute*1,
+		)
+		if xc20 != nil {
+			C= 500
+			N= fmt.Sprintf (`Replacement of stale conn failed [%s]`, xc20.Error ())
+			return
+		}
+		xc25 :=&tls.Config {ServerName:c.cmps_addr}
+		if c.cmps_scrt == false { xc25.InsecureSkipVerify = true }
+		xc15  = tls.Client (xc15, xc25)
+		conn  = xc15
+	}
+	/***3***/
+	if xb20 != nil {
+		xc20  , xc25 :=Forwarder (conn, xb10)
+		if xc20 != nil {
+			C= 500
+			N= fmt.Sprintf (`Request forwarding failed [%s]`, xc20.Error ())
+			return 
+		}
+		xb25  = xc25
 	}
 	/***4***/
 	C=int ( xb25["ExctnOutcomeCode"].(float64) )
@@ -93,24 +120,5 @@ func(c *Conn) Write (MssgType string, MssgSeed map[string]any) (
 	if xb30 != nil {N=xb25["ExctnOutcomeNote"].(string)}
 	xb35 := xb25["Yield"]
 	if xb35 != nil {Y=xb25["Yield" ].(map[string]any)}
-	return
-}
-func(c *Conn) Water () (E error) {
-	c.mtxx.Lock ()
-	xb05 := [ ]net.Conn {}
-	defer  func ()  {
-		for _, xd05 := range xb05 { c.pool.PushBack (xd05) }
-		c.mtxx.Unlock  ( )
-	} ( )
-	xb10 := map[string]any { }
-	xb10["Service"] = ""
-	xb15 := c.pool.Len()
-	for  xc05 := 1; xc05 <= xb15; xc05++ {
-		xc10 := c.pool.Front ()
-		c.pool.Remove (xc10)
-		xc15 := xc10.Value.(net.Conn)
-		Forwarder(xc15,xb10)
-		xb05  = append(xb05,xc15)
-	}
 	return
 }
