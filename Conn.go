@@ -1,11 +1,9 @@
 package NIPI
 
-import  "container/list"
 import  "crypto/tls"
 import  "errors"
 import  "fmt"
 import  "net"
-import  "sync"
 import  "time"
 
 func    Conn_Create (
@@ -19,42 +17,18 @@ func    Conn_Create (
 		return
 	}
 	/***2***/
-	xb05 := ""
 	C=&Conn {
-		tknn: make(chan bool, ChannelSize) ,
-		pool: list.New (),
-		mtxx: &sync.Mutex {},
 		atKy: AuthKey,
 		cmps_addr: RemoteAddr,
 		cmps_port: RemotePort,
 		cmps_scrt: Security,
 		cmps_auth: AuthKey,
 	}
-	for xc05 := 1; xc05 <= ChannelSize; xc05++ {
-		xc15 , xc20 := net.DialTimeout (
-			"tcp", RemoteAddr+":"+RemotePort, time.Minute*1,
-		)
-		if xc20 != nil { xb05 = xc20.Error (); continue }
-		xc25:=&tls.Config {ServerName:RemoteAddr}
-		if Security == false { xc25.InsecureSkipVerify = true }
-		xc15 = tls.Client (xc15, xc25)
-		C.pool.PushBack (xc15)
-		C.tknn  <- true
-	}
-	if C.pool.Len() == 0  {
-		E = errors.New (fmt.Sprintf (
-			`Channel creation failed [Last Error: %s]`, xb05,
-		) )
-		return
-	}
 	/***3***/
 	return
 }
 type    Conn struct {
-	pool *list.List
-	mtxx *sync.Mutex
 	atKy string
-	tknn chan bool
 	cmps_addr string
 	cmps_port string
 	cmps_scrt bool
@@ -76,43 +50,28 @@ func(c *Conn) Write (MssgType string, MssgSeed map[string]any) (
 	xb10["Service"]  = xb05
 	xb10["Seed"] = MssgSeed
 	/***2***/
-	_  = <- c.tknn
-	c.mtxx.Lock ()
-	xb15 := c.pool.Front ()
-	c.pool.Remove (xb15)
-	conn := xb15.Value.(net.Conn)
-	c.mtxx.Unlock ()
-	defer func () {
-		c.mtxx.Lock ()
-		c.pool.PushBack(conn)
-		c.mtxx.Unlock ()
-		c.tknn <- true
-	} ( )
-	/***3***/
-	xb20  , xb25 :=Forwarder (conn, xb10)
-	if xb20 != nil {
-		xc15  , xc20 := net.DialTimeout (
-			"tcp", c.cmps_addr+":"+c.cmps_port, time.Minute*1,
-		)
-		if xc20 != nil {
-			C= 500
-			N= fmt.Sprintf (`Replacement of stale conn failed [%s]`, xc20.Error ())
-			return
-		}
-		xc25 :=&tls.Config {ServerName:c.cmps_addr}
-		if c.cmps_scrt == false { xc25.InsecureSkipVerify = true }
-		xc15  = tls.Client (xc15, xc25)
-		conn  = xc15
+	xB11 := 0
+	XB11  :
+	xb11  , xb12:= net.DialTimeout (
+		"tcp", c.cmps_addr+":"+c.cmps_port, time.Second*15,
+	)
+	xB11  = xB11 + 1
+	if xb12 != nil && xB11 <= 5 { goto XB11 }
+	if xb12 != nil {
+		C= 500
+		N= fmt.Sprintf (`Conn creation failed [%s]`, xb12.Error ())
+		return
 	}
+	xb13 :=&tls.Config {ServerName:c.cmps_addr}
+	if c.cmps_scrt == false { xb13.InsecureSkipVerify = true }
+	xb15 := tls.Client (xb11, xb13)
 	/***3***/
+	xb20  , xb25 :=Forwarder (xb15, xb10)
+	if xb20 != nil && xB11 < 5 { goto XB11 }
 	if xb20 != nil {
-		xc20  , xc25 :=Forwarder (conn, xb10)
-		if xc20 != nil {
-			C= 500
-			N= fmt.Sprintf (`Request forwarding failed [%s]`, xc20.Error ())
-			return 
-		}
-		xb25  = xc25
+		C= 500
+		N= fmt.Sprintf (`Request forwarding failed [%s]`, xb20.Error ())
+		return 
 	}
 	/***4***/
 	C=int ( xb25["ExctnOutcomeCode"].(float64) )
